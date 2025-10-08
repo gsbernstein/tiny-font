@@ -21,6 +21,7 @@ run-examples-sdl-ttf:
 
 # Override to your local installation if needed
 CLANG_TIDY_RUN ?= run-clang-tidy
+# Currently formatted with clang-format 19
 CLANG_FORMAT ?= clang-format
 CMAKE_FLAGS ?= -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 # Exclude vendored freetype and Catch2 amalgamation from analysis
