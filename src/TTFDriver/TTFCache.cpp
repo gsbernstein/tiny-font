@@ -18,7 +18,7 @@ auto TTFCache::doGetGlyph(Font &font, font_defs::GlyphCode glyphCode, uint32_t k
         clear();
 
         if (glyph == nullptr) {
-            LOGE("Unable to allocate memory for a glyph.");
+            LOGE(FONT_TAG, "Unable to allocate memory for a glyph.");
         }
     }
 
@@ -41,11 +41,11 @@ void TTFCache::clear() {
     }
     glyphCache_.clear();
     hitCount_ = missCount_ = 0;
-    LOGI("Glyphs' cache cleared.");
+    LOGI(FONT_TAG, "Glyphs' cache cleared.");
 }
 
 void TTFCache::showStats() const {
-    LOGI("Glyphs' cache statistics: hits: %" PRIu32 ", misses: %" PRIu32 ".", hitCount_,
+    LOGI(FONT_TAG, "Glyphs' cache statistics: hits: %" PRIu32 ", misses: %" PRIu32 ".", hitCount_,
          missCount_);
 }
 

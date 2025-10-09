@@ -1,22 +1,12 @@
 #pragma once
 
+#include <Log/Log.hpp>
 #include <cstdio>
 #include <inttypes.h>
 
 // These are the definitions that are common to both IBMF and TTF Font types
 
-#ifndef LOGI
-#define LOGI(format, ...) std::printf("INFO: " format "\n", ##__VA_ARGS__)
-#endif
-#ifndef LOGW
-#define LOGW(format, ...) std::printf("WARNING: " format "\n", ##__VA_ARGS__)
-#endif
-#ifndef LOGE
-#define LOGE(format, ...) std::printf("ERROR: " format "\n", ##__VA_ARGS__)
-#endif
-#ifndef LOGD
-#define LOGD(format, ...) std::printf("DEBUG: " format "\n", ##__VA_ARGS__)
-#endif
+constexpr const char *FONT_TAG = "FONT";
 
 namespace font_defs {
 

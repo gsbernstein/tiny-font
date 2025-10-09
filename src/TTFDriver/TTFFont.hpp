@@ -54,7 +54,8 @@ public:
                 FT_New_Memory_Face(fontData_.getLibrary(), (const FT_Byte *)(fontData_.getData()),
                                    fontData_.getDataSize(), 0, &face_);
             if (error) {
-                LOGE("The memory of the main font format is unsupported or is broken (%d).", error);
+                LOGE(FONT_TAG,
+                     "The memory of the main font format is unsupported or is broken (%d).", error);
             } else {
                 int error = FT_Set_Char_Size(face_,               // handle to face object
                                              0,                   // char_width in 1/64th of points
@@ -62,7 +63,7 @@ public:
                                              SCREEN_RES_PER_INCH, // horizontal device resolution
                                              SCREEN_RES_PER_INCH); // vertical device resolution
                 if (error) {
-                    LOGE("Unable to set font size.");
+                    LOGE(FONT_TAG, "Unable to set font size.");
                 } else {
 
                     GlyphCode glyphCode = FT_Get_Char_Index(face_, ' ');
@@ -71,7 +72,7 @@ public:
                         *this, glyphCode, subSupSize_ >= 0 ? subSupSize_ : size_);
 
                     if (!glyph.has_value()) {
-                        LOGE("Unable to load glyph for space char.");
+                        LOGE(FONT_TAG, "Unable to load glyph for space char.");
                         spaceSize_ = 5 * 64; // Use a default size
                     } else {
                         spaceSize_ = glyph.value()->metrics.advance;
@@ -81,7 +82,8 @@ public:
                                                (const FT_Byte *)(fontData_.getPrivateData()),
                                                fontData_.getPrivateDataSize(), 0, &privateFace_);
                     if (error) {
-                        LOGE("The memory of the private font format is unsupported or is "
+                        LOGE(FONT_TAG,
+                             "The memory of the private font format is unsupported or is "
                              "broken (%d).",
                              error);
                     } else {
@@ -92,7 +94,7 @@ public:
                                              SCREEN_RES_PER_INCH, // horizontal device resolution
                                              SCREEN_RES_PER_INCH); // vertical device resolution
                         if (error) {
-                            LOGE("Unable to set private font size.");
+                            LOGE(FONT_TAG, "Unable to set private font size.");
                         }
 
                         unknownGlyphCode_ = translate(UNKNOWN_CODEPOINT);
@@ -109,13 +111,13 @@ public:
             return true;
         }
 
-        LOGE("!!!! FONT NOT INITIALIZED !!!!");
+        LOGE(FONT_TAG, "!!!! FONT NOT INITIALIZED !!!!");
         return false;
     }
 
     [[nodiscard]] inline auto lineHeight() const -> int {
         if constexpr (TTF_TRACING) {
-            LOGD("lineHeight()");
+            LOGD(FONT_TAG, "lineHeight()");
         }
         return isInitialized() ? face_->size->metrics.height >> 6 : 0;
     }
@@ -126,7 +128,7 @@ public:
 
     [[nodiscard]] inline auto setDisplayPixelResolution(PixelResolution res) -> bool {
 #if CONFIG_TINYFONT_PIXEL_RESOLUTION_IS_FIX
-        LOGW("The display does not allow to change it's pixel resolution!");
+        LOGW(FONT_TAG, "The display does not allow to change it's pixel resolution!");
         return false;
 #else
         if (initialized_) {
@@ -213,7 +215,7 @@ public:
                                      SCREEN_RES_PER_INCH,  // horizontal device resolution
                                      SCREEN_RES_PER_INCH); // vertical device resolution
         if (error) {
-            LOGE("Unable to set font size.");
+            LOGE(FONT_TAG, "Unable to set font size.");
         }
     }
 
@@ -225,7 +227,7 @@ public:
                                      SCREEN_RES_PER_INCH,  // horizontal device resolution
                                      SCREEN_RES_PER_INCH); // vertical device resolution
         if (error) {
-            LOGE("Unable to set font size.");
+            LOGE(FONT_TAG, "Unable to set font size.");
         }
     }
 };

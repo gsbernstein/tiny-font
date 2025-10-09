@@ -42,7 +42,7 @@ public:
             return true;
         }
 
-        LOGE("!!!! FONT NOT INITIALIZED !!!!");
+        LOGE(FONT_TAG, "!!!! FONT NOT INITIALIZED !!!!");
         return false;
     }
 
@@ -52,12 +52,12 @@ public:
 
     inline auto setDisplayPixelResolution(PixelResolution res) -> bool {
 #if CONFIG_TINYFONT_PIXEL_RESOLUTION_IS_FIX
-        LOGW("The display does not allow to change it's pixel resolution!");
+        LOGW(FONT_TAG, "The display does not allow to change it's pixel resolution!");
         return false;
 #else
 
         if constexpr (IBMF_TRACING) {
-            LOGD("setDisplayPixelResolution_()");
+            LOGD(FONT_TAG, "setDisplayPixelResolution_()");
         }
         if (isInitialized()) {
             fontData_->getFace(faceIndex_)->setDisplayPixelResolution(res);
@@ -69,7 +69,7 @@ public:
 
     [[nodiscard]] inline auto getDisplayPixelResolution() const -> PixelResolution {
         if constexpr (IBMF_TRACING) {
-            LOGD("getDisplayPixelResolution_()");
+            LOGD(FONT_TAG, "getDisplayPixelResolution_()");
         }
         return (isInitialized()) ? fontData_->getFace(faceIndex_)->getDisplayPixelResolution()
                                  : DEFAULT_DISPLAY_PIXEL_RESOLUTION;
@@ -77,9 +77,9 @@ public:
 
     [[nodiscard]] inline auto lineHeight() const -> int {
         if constexpr (IBMF_TRACING) {
-            LOGD("lineHeight()");
+            LOGD(FONT_TAG, "lineHeight()");
             if (!isInitialized()) {
-                LOGE("Not initialized!!!");
+                LOGE(FONT_TAG, "Not initialized!!!");
             }
         }
         return isInitialized() ? static_cast<int>(fontData_->getFace(faceIndex_)->getLineHeight())
@@ -99,13 +99,13 @@ public:
     // inline auto getTextWidthQuick(const char *buffer) -> int { return getTextWidth(buffer); }
     inline auto getTextWidthQuick(const char *buffer) -> int16_t {
         if constexpr (IBMF_TRACING) {
-            LOGD("getTextWidthQuick()");
+            LOGD(FONT_TAG, "getTextWidthQuick()");
         }
 
         int16_t width = 0;
         auto face = fontData_->getFace(faceIndex_);
 
-        // LOGW("word: %s", buffer);
+        // LOGW(FONT_TAG, "word: %s", buffer);
 
         while (*buffer) {
             int16_t xoff;
@@ -117,7 +117,7 @@ public:
                     (*buffer == '\0') ? (face->getGlyphWidth(glyphCode) - xoff) : (advance >> 6);
             }
         }
-        // LOGW(" width: %" PRIi16, width);
+        // LOGW(FONT_TAG, " width: %" PRIi16, width);
         return width;
     }
 

@@ -12,26 +12,27 @@ auto FontData::load(MemoryPtr fontData, uint32_t length) -> bool {
     preamble_ = reinterpret_cast<PreamblePtr>(fontData);
 
     if constexpr (IBMF_TRACING) {
-        LOGD("Loading font at location 0x%p of length %u", fontData,
+        LOGD(FONT_TAG, "Loading font at location 0x%p of length %u", fontData,
              static_cast<unsigned int>(length));
     }
 
     if (strncmp("IBMF", preamble_->marker, 4) != 0) {
-        LOGE("Preamble in error: IBMF marker absent!!");
+        LOGE(FONT_TAG, "Preamble in error: IBMF marker absent!!");
         return false;
     }
     if (preamble_->bits.version != IBMF_VERSION) {
-        LOGE("Font is of a wrong version. Expected V4, got V%d", preamble_->bits.version);
+        LOGE(FONT_TAG, "Font is of a wrong version. Expected V4, got V%d", preamble_->bits.version);
         return false;
     }
 
     if (preamble_->bits.fontFormat > 1) {
-        LOGE("Unknown font format. Expected 0 (LATIN) or 1 (UTF32), got %d",
+        LOGE(FONT_TAG, "Unknown font format. Expected 0 (LATIN) or 1 (UTF32), got %d",
              preamble_->bits.fontFormat);
         return false;
     }
     if (preamble_->faceCount >= 10) {
-        LOGE("Too many faces in the font. Limit is set to %d in ibmf_defs.h", MAX_FACE_COUNT);
+        LOGE(FONT_TAG, "Too many faces in the font. Limit is set to %d in ibmf_defs.h",
+             MAX_FACE_COUNT);
         return false;
     }
 
@@ -53,13 +54,13 @@ auto FontData::load(MemoryPtr fontData, uint32_t length) -> bool {
         data += (((*planes_)[3].codePointBundlesIdx + (*planes_)[3].entriesCount) *
                  sizeof(CodePointBundle));
     } else {
-        LOGE("The font format is not UTF32");
+        LOGE(FONT_TAG, "The font format is not UTF32");
         return false; // We only support FontFormat::UTF32
     }
 
     // Check for discrepancies
     if ((*binFaceOffsets)[0] != static_cast<uint32_t>(data - fontData)) {
-        LOGE("Wrong faces offset in font file, got %08x, expected %08x.",
+        LOGE(FONT_TAG, "Wrong faces offset in font file, got %08x, expected %08x.",
              static_cast<unsigned int>((*binFaceOffsets)[0]),
              static_cast<unsigned int>(data - fontData));
         return false;
@@ -73,7 +74,7 @@ auto FontData::load(MemoryPtr fontData, uint32_t length) -> bool {
 
         if (!faces_[i].load(fontData + (*binFaceOffsets)[i], binFaceLengths[i],
                             preamble_->bits.fontFormat)) {
-            LOGE("Unable to load face %d", i);
+            LOGE(FONT_TAG, "Unable to load face %d", i);
             return false;
         }
     }
@@ -237,7 +238,7 @@ auto FontData::load(MemoryPtr fontData, uint32_t length) -> bool {
     // The following test could generates many entries in the log, depending on the quantity of
     // unknown code points received to be translated. Could be removed or disabled if required.
     if ((codePoint != UNKNOWN_CODEPOINT) && (glyphCode == unknownGlyphCode_)) {
-        LOGW("Unknown Code Point received: U+%05" PRIx32, uint32_t(codePoint));
+        LOGW(FONT_TAG, "Unknown Code Point received: U+%05" PRIx32, uint32_t(codePoint));
     }
 
     return glyphCode;

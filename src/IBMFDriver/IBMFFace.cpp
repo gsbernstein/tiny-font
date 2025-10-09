@@ -11,7 +11,8 @@ auto IBMFFace::load(const MemoryPtr dataStart, const int dataLength, FontFormat 
     fontFormat_ = fontFmt;
 
     if (faceHeader_->glyphCount >= UTF32_MAX_GLYPH_COUNT) {
-        LOGE("Too many glyphs in face. Maximum is %d in ibmf_defs.h", UTF32_MAX_GLYPH_COUNT);
+        LOGE(FONT_TAG, "Too many glyphs in face. Maximum is %d in ibmf_defs.h",
+             UTF32_MAX_GLYPH_COUNT);
         return false;
     }
 
@@ -30,7 +31,7 @@ auto IBMFFace::load(const MemoryPtr dataStart, const int dataLength, FontFormat 
     memoryPtr += (sizeof(LigKernStep) * faceHeader_->ligKernStepCount);
 
     if (memoryPtr != memoryEnd) {
-        LOGE("IBMFFace: Memory synch issue reading lig/kern struct!!");
+        LOGE(FONT_TAG, "IBMFFace: Memory synch issue reading lig/kern struct!!");
         return false;
     }
 
@@ -148,7 +149,7 @@ auto IBMFFace::ligKern(const GlyphCode glyphCode1, GlyphCode *glyphCode2, FIX16 
 
         delete[] glyph1.bitmap.pixels;
 
-        LOGE("Unable to load glyphCode %d related glyph bitmap.", glyphCode1);
+        LOGE(FONT_TAG, "Unable to load glyphCode %d related glyph bitmap.", glyphCode1);
         return false;
     }
 
@@ -160,7 +161,7 @@ auto IBMFFace::ligKern(const GlyphCode glyphCode1, GlyphCode *glyphCode2, FIX16 
 
         delete[] glyph2.bitmap.pixels;
 
-        LOGE("Unable to load glyphCode %d related glyph bitmap.", *glyphCode2);
+        LOGE(FONT_TAG, "Unable to load glyphCode %d related glyph bitmap.", *glyphCode2);
         return false;
     }
 
@@ -420,7 +421,7 @@ auto IBMFFace::ligKern(const GlyphCode glyphCode1, GlyphCode *glyphCode2, FIX16 
 
     *kern = static_cast<FIX16>(kerning >> 4); // Convert to FIX16
 #endif
-    // LOGD("Optical Kerning End");
+    // LOGD(FONT_TAG, "Optical Kerning End");
     return false;
 }
 
@@ -442,7 +443,7 @@ auto IBMFFace::ligKern(const GlyphCode glyphCode1, GlyphCode *glyphCode2, FIX16 
 auto IBMFFace::getGlyph(GlyphCode glyphCode, Glyph &appGlyph, bool loadBitmap, bool caching,
                         Pos atPos, bool inverted) -> bool {
 
-    // LOGD("glyphCode: %04x, loadBitmap: %s, caching: %s, pos: [%d, %d]", glyphCode,
+    // LOGD(FONT_TAG, "glyphCode: %04x, loadBitmap: %s, caching: %s, pos: [%d, %d]", glyphCode,
     //      loadBitmap ? "YES" : "NO", caching ? "YES" : "NO", atPos.x, atPos.y);
 
     if (caching) {
@@ -450,7 +451,7 @@ auto IBMFFace::getGlyph(GlyphCode glyphCode, Glyph &appGlyph, bool loadBitmap, b
     }
 
     if (fontFormat_ != FontFormat::UTF32) {
-        LOGE("Unknown character set: %d", fontFormat_);
+        LOGE(FONT_TAG, "Unknown character set: %d", fontFormat_);
         return false;
     }
 
@@ -504,7 +505,7 @@ auto IBMFFace::getGlyph(GlyphCode glyphCode, Glyph &appGlyph, bool loadBitmap, b
             // SHOW_HEAP();
             appGlyph.bitmap.pixels = new (std::nothrow) uint8_t[size];
             if (appGlyph.bitmap.pixels == nullptr) {
-                LOGE("Unable to allocate glyph pixel memory of size %d!", size);
+                LOGE(FONT_TAG, "Unable to allocate glyph pixel memory of size %d!", size);
                 appGlyph.bitmap.dim = Dim(0, 0);
                 appGlyph.bitmap.pitch = 0;
                 return false;

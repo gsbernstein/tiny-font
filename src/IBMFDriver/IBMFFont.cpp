@@ -69,7 +69,7 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
     atPos.y += lineHeight() - up;
 
     if constexpr (IBMF_TRACING) {
-        LOGD("drawSingleLineOfText()");
+        LOGD(FONT_TAG, "drawSingleLineOfText()");
     }
 
     if (isInitialized()) {
@@ -92,7 +92,7 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
             int8_t hOffset = first ? fontData_->getFace(faceIndex_)->getGlyphHOffset(glyphCode) : 0;
             atPos.x += hOffset;
 
-            // LOGD("Word Markers: %d %d", first, last);
+            // LOGD(FONT_TAG, "Word Markers: %d %d", first, last);
 
             if (fontData_->getFace(faceIndex_)
                     ->getGlyph(glyphCode, glyph, true, false, atPos, inverted)) {
@@ -113,9 +113,9 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
 }
 
 auto Font::getTextSize(const std::string &buffer) const -> ibmf_defs::Dim {
-    // LOGD("getTextSize(): %s", buffer.c_str());
+    // LOGD(FONT_TAG, "getTextSize(): %s", buffer.c_str());
     if constexpr (IBMF_TRACING) {
-        LOGD("getTextSize()");
+        LOGD(FONT_TAG, "getTextSize()");
     }
     ibmf_defs::Dim dim = ibmf_defs::Dim(0, 0);
     int16_t up = 0;
@@ -129,7 +129,7 @@ auto Font::getTextSize(const std::string &buffer) const -> ibmf_defs::Dim {
             ibmf_defs::Glyph glyph{};
             if (fontData_->getFace(faceIndex_)
                     ->getGlyph(glyphCode, glyph, false)) { // retrieves only the metrics
-                // LOGD("Advance: %f, xoff: %d, yoff: %d, descent: %d, kern: %d",
+                // LOGD(FONT_TAG, "Advance: %f, xoff: %d, yoff: %d, descent: %d, kern: %d",
                 //      IBMFFace::fromFIX16(glyph.metrics.advance), glyph.metrics.xoff,
                 //      glyph.metrics.yoff, glyph.metrics.descent, kern);
                 if (glyphCode == SPACE_CODE) {
@@ -145,18 +145,18 @@ auto Font::getTextSize(const std::string &buffer) const -> ibmf_defs::Dim {
                 //                  ? glyph.metrics.yoff
                 //                  : dim.height; // yoff is negative...
             } else {
-                // LOGW("Unable to retrieve glyph for glyphCode %d", glyphCode);
+                // LOGW(FONT_TAG, "Unable to retrieve glyph for glyphCode %d", glyphCode);
             }
         });
     }
     dim.height = (up + down);
-    // LOGD("IBMFFont: TextBound: width: %d, height: %d", dim.width, dim.height);
+    // LOGD(FONT_TAG, "IBMFFont: TextBound: width: %d, height: %d", dim.width, dim.height);
     return dim;
 }
 
 auto Font::getTextWidth(const std::string &buffer) -> int {
     if constexpr (IBMF_TRACING) {
-        LOGD("getTextWidth()");
+        LOGD(FONT_TAG, "getTextWidth()");
     }
     int width = 0;
     if (isInitialized()) {
@@ -166,7 +166,7 @@ auto Font::getTextWidth(const std::string &buffer) -> int {
             if (fontData_->getFace(faceIndex_)
                     ->getGlyph(glyphCode, glyph, false)) { // retrieves only the metrics
 
-                // LOGD("Advance: %f, xoff: %d, yoff: %d, descent: %d, kern: %d",
+                // LOGD(FONT_TAG, "Advance: %f, xoff: %d, yoff: %d, descent: %d, kern: %d",
                 //      IBMFFace::fromFIX16(glyph.metrics.advance), glyph.metrics.xoff,
                 //      glyph.metrics.yoff, glyph.metrics.descent, kern);
 
@@ -178,16 +178,16 @@ auto Font::getTextWidth(const std::string &buffer) -> int {
                                   : ((glyph.metrics.advance + kern) >> 6); // + glyph.metrics.xoff;
                 }
 
-                // LOGD("Advance value: %f, kern: %f",
+                // LOGD(FONT_TAG, "Advance value: %f, kern: %f",
                 //     IBMFFace::fromFIX16(glyph.metrics.advance),
                 //     IBMFFace::fromFIX16(kern));
                 // width += (glyph.metrics.advance + kern + 32) >> 6;
             } else {
-                // LOGW("Unable to retrieve glyph for glyphCode %d", glyphCode);
+                // LOGW(FONT_TAG, "Unable to retrieve glyph for glyphCode %d", glyphCode);
             }
         });
     }
-    // LOGD("IBMFFont: TextWidth: %d", width);
+    // LOGD(FONT_TAG, "IBMFFont: TextWidth: %d", width);
     return width;
 }
 
@@ -225,26 +225,26 @@ auto Font::toChar32(const char **str) -> char32_t {
 
 auto Font::getTextHeight(const std::string &buffer) const -> int {
     if constexpr (IBMF_TRACING) {
-        LOGD("getTextHeight()");
+        LOGD(FONT_TAG, "getTextHeight()");
     }
     int height = 0;
     if (isInitialized()) {
         // for (UTF8Iterator chrIter = buffer.begin(); chrIter != buffer.end(); chrIter++) {
         //     ibmf_defs::Glyph glyph;
         //     if (fontData_->getFace(faceIndex_)->getGlyph(*chrIter, glyph, false)) {
-        //         // LOGD("yoff value: %d", glyph.metrics.yoff);
+        //         // LOGD(FONT_TAG, "yoff value: %d", glyph.metrics.yoff);
         //         if (height > glyph.metrics.yoff) {
         //             height = glyph.metrics.yoff; // yoff is negative
         //         }
         //     } else {
-        //         LOGW("Unable to retrieve glyph for char %d(%c)", *chrIter, *chrIter);
+        //         LOGW(FONT_TAG, "Unable to retrieve glyph for char %d(%c)", *chrIter, *chrIter);
         //     }
         // }
         // height = fontData_->getFace(faceIndex_)->getEmHeight();
         Dim dim = getTextSize(buffer);
         height = dim.height;
     }
-    // LOGD("TextHeight: %d", height);
+    // LOGD(FONT_TAG, "TextHeight: %d", height);
     return height;
 }
 

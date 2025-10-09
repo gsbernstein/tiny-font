@@ -21,8 +21,6 @@ run-examples-sdl-ttf:
 
 # Override to your local installation if needed
 CLANG_TIDY_RUN ?= run-clang-tidy
-# Currently formatted with clang-format 19
-CLANG_FORMAT ?= clang-format
 CMAKE_FLAGS ?= -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 # Exclude vendored freetype and Catch2 amalgamation from analysis
 TIDY_FILES ?= '^(?!.*(/freetype/|/Catch2/catch_amalgamated\\.cpp|/Catch2/catch_amalgamated\\.hpp)).*$$'
@@ -44,6 +42,8 @@ tidy-sdl-ttf:
 	@cmake -S examples/SDL/TTF -B examples/SDL/TTF/build $(CMAKE_FLAGS)
 	@$(CLANG_TIDY_RUN) -p examples/SDL/TTF/build $(TIDY_FILES)
 
+# Currently formatted with clang-format 19
+CLANG_FORMAT ?= clang-format
 # Format all tracked C/C++ sources via git, excluding freetype and Catch2 amalgamation
 FORMAT_FILES := $(shell git ls-files '*.c' '*.cc' '*.cxx' '*.cpp' '*.h' '*.hpp' | grep -Ev '^(freetype/|tests/Catch2/)')
 

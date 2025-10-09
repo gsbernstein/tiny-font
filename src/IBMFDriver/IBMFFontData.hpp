@@ -38,7 +38,7 @@ public:
 
         load(const_cast<MemoryPtr>(fontData), length);
         if (!initialized_) {
-            LOGE("Font data not recognized!");
+            LOGE(FONT_TAG, "Font data not recognized!");
         }
     }
 

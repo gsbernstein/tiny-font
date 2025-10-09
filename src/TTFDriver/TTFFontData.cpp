@@ -44,7 +44,7 @@ auto FontData::load() -> bool {
     if (library == nullptr) {
         FT_Error error = FT_New_Library(&ftMemory, &library);
         if (error) {
-            LOGE("An error occurred during FreeType library initialization.");
+            LOGE(FONT_TAG, "An error occurred during FreeType library initialization.");
         }
         FT_Add_Default_Modules(library);
     }

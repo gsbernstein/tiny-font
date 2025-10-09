@@ -25,7 +25,8 @@
     } else if ((codePoint >= 0xE000) && (codePoint <= 0xF8FF)) {
         // Those are codepoints in the private space. Their index starts at 0x8000.
         glyphCode = FT_Get_Char_Index(privateFace_, codePoint) + 0x8000;
-        // LOGW("glyphCode for CodePoint U+%05" PRIx32 ": %" PRIu16, codePoint, glyphCode);
+        // LOGW(FONT_TAG, "glyphCode for CodePoint U+%05" PRIx32 ": %" PRIu16, codePoint,
+        // glyphCode);
     } else {
         glyphCode = FT_Get_Char_Index(face_, codePoint);
     }
@@ -37,7 +38,7 @@
     // The following test could generates many entries in the log, depending on the quantity of
     // unknown code points received to be translated. Could be removed or disabled if required.
     if ((codePoint != UNKNOWN_CODEPOINT) && (glyphCode == unknownGlyphCode_)) {
-        LOGW("Unknown Code Point received: U+%05" PRIx32, uint32_t(codePoint));
+        LOGW(FONT_TAG, "Unknown Code Point received: U+%05" PRIx32, uint32_t(codePoint));
     }
 
     return glyphCode;
@@ -353,7 +354,7 @@ auto Font::getGlyphForCache(GlyphCode glyphCode, Glyph &glyph) -> bool {
                           theGlyphCode,     /* glyph index           */
                           FT_LOAD_DEFAULT); /* load flags */
     if (error) {
-        LOGE("Unable to load glyph for charcode: %d", theGlyphCode);
+        LOGE(FONT_TAG, "Unable to load glyph for charcode: %d", theGlyphCode);
         return false;
     }
 
@@ -369,7 +370,8 @@ auto Font::getGlyphForCache(GlyphCode glyphCode, Glyph &glyph) -> bool {
         }
 
         if (error) {
-            LOGE("Unable to render glyph for charcode: %d error: %d", theGlyphCode, error);
+            LOGE(FONT_TAG, "Unable to render glyph for charcode: %d error: %d", theGlyphCode,
+                 error);
             return false;
         }
     }
@@ -389,7 +391,7 @@ auto Font::getGlyphForCache(GlyphCode glyphCode, Glyph &glyph) -> bool {
         glyph.bitmap.pixels = static_cast<font_defs::MemoryPtr>(malloc(size));
 #endif
         if (glyph.bitmap.pixels == nullptr) {
-            LOGE("Unable to allocate glyph pixel memory of size %d!", size);
+            LOGE(FONT_TAG, "Unable to allocate glyph pixel memory of size %d!", size);
             glyph.bitmap.dim = Dim(0, 0);
             return false;
         }
@@ -462,7 +464,7 @@ auto Font::drawSingleLineOfText(font_defs::Bitmap &canvas, font_defs::Pos pos,
     font_defs::Pos atPos = pos;
 
     if constexpr (TTF_TRACING) {
-        LOGD("drawSingleLineOfText()");
+        LOGD(FONT_TAG, "drawSingleLineOfText()");
     }
     if (isInitialized()) {
         // Glyph glyph{};
@@ -540,7 +542,7 @@ auto Font::getTextSize(const std::string &buffer) -> font_defs::Dim {
     }
 
     dim.height = (up + down);
-    // LOGD("TTFFont: TextBound: width: %d, height: %d", dim.width, dim.height);
+    // LOGD(FONT_TAG, "TTFFont: TextBound: width: %d, height: %d", dim.width, dim.height);
     return dim;
 }
 

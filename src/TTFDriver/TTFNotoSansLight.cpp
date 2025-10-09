@@ -38,7 +38,8 @@ auto TTFNotoSansLight::ligKern(const GlyphCode glyphCode1, GlyphCode *glyphCode2
     auto resLigs = BinarySearch(notoSansLight.ligatures_, key);
 
     if (resLigs.has_value()) {
-        // LOGW("====> Ligature found: (%d, %d) -> %d.", glyphCode1, *glyphCode2, resLigs.value());
+        // LOGW(FONT_TAG, "====> Ligature found: (%d, %d) -> %d.", glyphCode1, *glyphCode2,
+        // resLigs.value());
         *glyphCode2 = resLigs.value();
         return true;
     }
@@ -55,7 +56,7 @@ auto TTFNotoSansLight::ligKern(const GlyphCode glyphCode1, GlyphCode *glyphCode2
         auto value = notoSansLight.mKerns_[resDef1.value().first][resDef2.value().second];
         if (value != 0) {
             *kern = value;
-            // LOGW("Class kern for %d (%d) and %d (%d): %d (%d)", glyphCode1,
+            // LOGW(FONT_TAG, "Class kern for %d (%d) and %d (%d): %d (%d)", glyphCode1,
             // resDef1.value().first,
             //      *glyphCode2, resDef2.value().second, value, *kern);
         }
@@ -68,7 +69,7 @@ auto TTFNotoSansLight::ligKern(const GlyphCode glyphCode1, GlyphCode *glyphCode2
 
     if (res2.has_value()) {
         *kern = res2.value();
-        // LOGW("Kern value: %d -> %d", res2.value(), *kern);
+        // LOGW(FONT_TAG, "Kern value: %d -> %d", res2.value(), *kern);
     }
 
     return false;

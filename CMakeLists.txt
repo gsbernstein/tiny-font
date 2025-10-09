@@ -12,7 +12,7 @@ if(DEFINED ESP_PLATFORM AND ESP_PLATFORM)
 
     idf_component_register(SRCS ${SOURCES}
                         INCLUDE_DIRS "src"
-                        REQUIRES freetype)
+                        REQUIRES freetype spiram-cpp idflog)
 
     target_compile_options(${COMPONENT_TARGET} PUBLIC ${compile_options})
 else()
@@ -22,8 +22,7 @@ else()
     target_include_directories(tiny-font PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
+    target_link_libraries(tiny-font PRIVATE spiram-cpp idflog)
 endif()
-
-
 
 project(tiny-font)
