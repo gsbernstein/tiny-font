@@ -19,6 +19,12 @@ examples-sdl-ttf:
 run-examples-sdl-ttf:
 	@$(MAKE) -C examples/SDL/TTF run
 
+clean:
+	@$(MAKE) -C tests clean
+	@$(MAKE) -C examples/SDL/IBMF clean
+	@$(MAKE) -C examples/SDL/TTF clean
+	@$(MAKE) -C examples/esp-idf clean
+
 # Override to your local installation if needed
 CLANG_TIDY_RUN ?= run-clang-tidy
 CMAKE_FLAGS ?= -DCMAKE_EXPORT_COMPILE_COMMANDS=ON

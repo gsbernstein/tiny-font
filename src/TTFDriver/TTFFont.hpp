@@ -154,7 +154,7 @@ public:
             if (fontPixelResolution_ != res) {
                 if ((res == PixelResolution::EIGHT_BITS) &&
                     (displayPixelResolution_ != PixelResolution::EIGHT_BITS)) {
-                    LOGE(
+                    LOGE(FONT_TAG,
                         "Cannot set font resolution to EIGHT_BITS if the display resolution is not "
                         "EIGHT_BITS!");
                 } else {

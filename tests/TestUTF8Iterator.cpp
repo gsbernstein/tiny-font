@@ -1,10 +1,9 @@
 #define CATCH_CONFIG_MAIN
 #include <FontDefs.hpp>
 #include <UTF8Iterator.hpp>
+#include <catch_amalgamated.hpp>
 #include <string>
 #include <vector>
-
-#include "Catch2/catch_amalgamated.hpp"
 
 #define GOOD_1 "\x24"
 #define GOOD_2 "\xD0\x98"

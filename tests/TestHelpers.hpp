@@ -1,10 +1,10 @@
 #pragma once
 
+#include <catch_amalgamated.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <string>
 
-#include "Catch2/catch_amalgamated.hpp"
 #include "ImageIO.hpp"
 
 #define ASSERT_IMAGE(NAME, WIDTH, HEIGHT, ACT_PTR, GOLD_PTR)                                       \

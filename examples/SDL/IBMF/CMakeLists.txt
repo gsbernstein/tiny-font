@@ -11,24 +11,26 @@ get_filename_component(TINY_FONT_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOL
 
 message(STATUS "tiny-font root: ${TINY_FONT_ROOT}")
 
+add_subdirectory("${TINY_FONT_ROOT}" ${CMAKE_CURRENT_BINARY_DIR}/tiny-font)
+target_compile_definitions(tiny-font PUBLIC
+    CONFIG_TINYFONT_IBMF=1
+    CONFIG_TINYFONT_PIXEL_RESOLUTION_ONE_BIT=1
+)
+
+# cpp-misc libraries
+include(FetchContent)
+FetchContent_Declare(cpp_misc
+    GIT_REPOSITORY https://github.com/sindarin-inc/cpp-misc
+    GIT_TAG main
+)
+FetchContent_MakeAvailable(cpp_misc)
+
+add_subdirectory("${cpp_misc_SOURCE_DIR}/idflog" ${CMAKE_CURRENT_BINARY_DIR}/idflog)
+
 # SDL2
 find_package(SDL2 REQUIRED)
 
 add_executable(ibmf_sdl
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-    ${TINY_FONT_ROOT}/src/IBMFDriver/IBMFFont.cpp
-    ${TINY_FONT_ROOT}/src/IBMFDriver/IBMFFontData.cpp
-    ${TINY_FONT_ROOT}/src/IBMFDriver/IBMFFace.cpp
-    ${TINY_FONT_ROOT}/src/IBMFDriver/RLEExtractor.cpp
 )
-
-target_include_directories(ibmf_sdl PRIVATE
-    ${TINY_FONT_ROOT}/src
-)
-
-target_link_libraries(ibmf_sdl PRIVATE SDL2::SDL2)
-
-target_compile_definitions(ibmf_sdl PRIVATE
-    CONFIG_TINYFONT_IBMF=1
-    CONFIG_TINYFONT_PIXEL_RESOLUTION_ONE_BIT=1
-)
+target_link_libraries(ibmf_sdl PRIVATE tiny-font SDL2::SDL2)

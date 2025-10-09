@@ -1,12 +1,11 @@
 #define CATCH_CONFIG_MAIN
+#include <Font.hpp>
+#include <IBMFFonts/SolSans_75.h>
+#include <catch_amalgamated.hpp>
 #include <cstdio>
 #include <string>
 #include <vector>
 
-#include "Catch2/catch_amalgamated.hpp"
-#include "Font.hpp"
-#include "IBMFDriver/IBMFFontData.hpp"
-#include "IBMFFonts/SolSans_75.h"
 #include "ImageIO.hpp"
 #include "TestHelpers.hpp"
 

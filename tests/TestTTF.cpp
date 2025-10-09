@@ -1,11 +1,11 @@
 #define CATCH_CONFIG_MAIN
+#include <Font.hpp>
+#include <TTFDriver/TTFNotoSansLight.hpp>
+#include <catch_amalgamated.hpp>
 #include <string>
 #include <vector>
 
-#include "Catch2/catch_amalgamated.hpp"
-#include "Font.hpp"
 #include "ImageIO.hpp"
-#include "TTFDriver/TTFNotoSansLight.hpp"
 #include "TestHelpers.hpp"
 
 using namespace ttf_defs;
