@@ -168,8 +168,8 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
 
             bool drawn = isItalic_
                              ? drawSlantedGlyph(glyph.bitmap, glyphCode, atPos, inverted, glyph)
-                             : fontData_->getFace(faceIndex_)->getGlyph(glyphCode, glyph, true,
-                                                                        false, atPos, inverted);
+                             : fontData_->getFace(faceIndex_)
+                                   ->getGlyph(glyphCode, glyph, true, false, atPos, inverted);
             if (drawn) {
                 // As advance is positive and greather than kern, we can shift right
                 // to get rid of the fix point decimals
