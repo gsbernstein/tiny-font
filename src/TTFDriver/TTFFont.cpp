@@ -496,14 +496,10 @@ auto Font::drawSingleLineOfText(font_defs::Bitmap &canvas, font_defs::Pos pos,
 
                     if (glyph.value()->bitmap.dim.width > 0) {
                         lastGlyphWidth_ = glyph.value()->bitmap.dim.width;
-                        // Apply italic skew by offsetting horizontally based on vertical position
+                        // TODO: Ask Guy about the right way to handle line height and keeping the
+                        // full text inside its box.
                         Pos outPos = Pos(atPos.x - glyph.value()->metrics.xoff,
                                          atPos.y + glyph.value()->metrics.yoff);
-                        if (isItalic_) {
-                            // Apply italic skew: approximately 0.35 * height offset
-                            // Increased from 0.2 for better visibility on e-ink displays
-                            outPos.x += (glyph.value()->metrics.yoff * 35) / 100;
-                        }
                         copyBitmap(canvas, glyph.value()->bitmap, outPos, inverted);
                     }
 
