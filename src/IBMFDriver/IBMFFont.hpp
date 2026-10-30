@@ -13,6 +13,7 @@ class Font {
 private:
     FontData *fontData_;
     int faceIndex_;
+    bool isItalic_{false};
     // IBMFFace *face_;
 
     // Maximum size of an allocated buffer to do vsnprintf formatting
@@ -85,6 +86,10 @@ public:
         return isInitialized() ? static_cast<int>(fontData_->getFace(faceIndex_)->getLineHeight())
                                : 0;
     }
+
+    inline void setItalicFont(bool italic) { isItalic_ = italic; }
+
+    [[nodiscard]] inline auto getItalicFont() const -> bool { return isItalic_; }
 
     auto drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
                               const std::string &line, bool inverted) const -> int;

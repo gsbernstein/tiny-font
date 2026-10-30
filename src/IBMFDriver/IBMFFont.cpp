@@ -94,8 +94,18 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
 
             // LOGD(FONT_TAG, "Word Markers: %d %d", first, last);
 
+            // Apply italic skew before rendering glyph
+            ibmf_defs::Pos italicPos = atPos;
+            if (isItalic_) {
+                // Apply italic skew: approximately 0.35 * height offset
+                // Increased from 0.2 for better visibility on e-ink displays
+                ibmf_defs::Glyph metricsGlyph{};
+                fontData_->getFace(faceIndex_)->getGlyph(glyphCode, metricsGlyph, false);
+                italicPos.x += (metricsGlyph.metrics.yoff * 35) / 100;
+            }
+
             if (fontData_->getFace(faceIndex_)
-                    ->getGlyph(glyphCode, glyph, true, false, atPos, inverted)) {
+                    ->getGlyph(glyphCode, glyph, true, false, italicPos, inverted)) {
                 // As advance is positive and greather than kern, we can shift right
                 // to get rid of the fix point decimals
                 if (glyphCode == SPACE_CODE) {

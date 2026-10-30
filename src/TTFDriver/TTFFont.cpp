@@ -500,9 +500,9 @@ auto Font::drawSingleLineOfText(font_defs::Bitmap &canvas, font_defs::Pos pos,
                         Pos outPos = Pos(atPos.x - glyph.value()->metrics.xoff,
                                          atPos.y + glyph.value()->metrics.yoff);
                         if (isItalic_) {
-                            // Apply italic skew: approximately 0.2 * height offset
-                            // This creates the characteristic italic slant
-                            outPos.x += (glyph.value()->metrics.yoff * 20) / 100;
+                            // Apply italic skew: approximately 0.35 * height offset
+                            // Increased from 0.2 for better visibility on e-ink displays
+                            outPos.x += (glyph.value()->metrics.yoff * 35) / 100;
                         }
                         copyBitmap(canvas, glyph.value()->bitmap, outPos, inverted);
                     }
