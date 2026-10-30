@@ -13,6 +13,7 @@ class Font {
 private:
     FontData *fontData_;
     int faceIndex_;
+    bool isItalic_{false};
     // IBMFFace *face_;
 
     // Maximum size of an allocated buffer to do vsnprintf formatting
@@ -30,6 +31,18 @@ private:
     /// @param handler Call. The callback closure handler.
     ///
     auto ligKernUTF8Map(const std::string &line, LigKernMappingHandler handler) const -> void;
+
+    // Italic slant as a fraction of 64 (13/64 ~= 0.2, about 11.5 degrees)
+    static constexpr int ITALIC_SLANT_64THS = 13;
+
+    // Horizontal shift, rounded to the nearest pixel, for a row at the given height above baseline
+    static constexpr auto slantShift(int heightAboveBaseline) -> int {
+        const int scaled = heightAboveBaseline * ITALIC_SLANT_64THS + 32;
+        return scaled >= 0 ? scaled / 64 : -((-scaled + 63) / 64);
+    }
+
+    auto drawSlantedGlyph(ibmf_defs::Bitmap &canvas, GlyphCode glyphCode, ibmf_defs::Pos atPos,
+                          bool inverted, ibmf_defs::Glyph &glyphOut) const -> bool;
 
 public:
     Font(FontData &ibmfFont, int index) noexcept : fontData_(&ibmfFont), faceIndex_(index) {}
@@ -85,6 +98,10 @@ public:
         return isInitialized() ? static_cast<int>(fontData_->getFace(faceIndex_)->getLineHeight())
                                : 0;
     }
+
+    inline void setItalicFont(bool italic) { isItalic_ = italic; }
+
+    [[nodiscard]] inline auto getItalicFont() const -> bool { return isItalic_; }
 
     auto drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
                               const std::string &line, bool inverted) const -> int;

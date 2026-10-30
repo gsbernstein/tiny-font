@@ -23,6 +23,7 @@ private:
     uint8_t lastGlyphWidth_{};
     PixelResolution displayPixelResolution_{DEFAULT_DISPLAY_PIXEL_RESOLUTION};
     PixelResolution fontPixelResolution_{DEFAULT_FONT_PIXEL_RESOLUTION};
+    bool isItalic_{false};
 
     GlyphCode unknownGlyphCode_{0};
 
@@ -168,6 +169,10 @@ public:
     [[nodiscard]] inline auto getFontPixelResolution() const -> PixelResolution {
         return (initialized_) ? fontPixelResolution_ : DEFAULT_FONT_PIXEL_RESOLUTION;
     }
+
+    inline void setItalicFont(bool italic) { isItalic_ = italic; }
+
+    [[nodiscard]] inline auto getItalicFont() const -> bool { return isItalic_; }
 
     [[nodiscard]] auto translate(char32_t codePoint) const -> GlyphCode;
 

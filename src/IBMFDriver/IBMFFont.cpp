@@ -51,6 +51,77 @@ auto Font::ligKernUTF8Map(const std::string &line, LigKernMappingHandler handler
     }
 }
 
+// Synthesizes italics by shearing the upright glyph about the baseline: each row is shifted right
+// in proportion to its height above the baseline (descenders shift left).
+auto Font::drawSlantedGlyph(ibmf_defs::Bitmap &canvas, GlyphCode glyphCode, ibmf_defs::Pos atPos,
+                            bool inverted, ibmf_defs::Glyph &glyphOut) const -> bool {
+    IBMFFace *face = fontData_->getFace(faceIndex_);
+
+    ibmf_defs::Glyph metricsOnly{};
+    if (!face->getGlyph(glyphCode, metricsOnly, false)) {
+        return false;
+    }
+    glyphOut.metrics = metricsOnly.metrics;
+
+    // With caching enabled the face decodes into its own freshly allocated bitmap. Passing the
+    // vertical offset as the position cancels the face's baseline adjustment so the glyph lands
+    // at (0, 0) in that bitmap.
+    ibmf_defs::Glyph decoded{};
+    if (!face->getGlyph(glyphCode, decoded, true, true, ibmf_defs::Pos(0, metricsOnly.metrics.yoff),
+                        false)) {
+        return false;
+    }
+    if (decoded.bitmap.pixels == nullptr) {
+        return true; // Space or blank glyph, nothing to draw
+    }
+
+    const bool oneBit = getDisplayPixelResolution() == PixelResolution::ONE_BIT;
+    const int16_t xoff = metricsOnly.metrics.xoff;
+    const int16_t yoff = metricsOnly.metrics.yoff;
+    const int originX = atPos.x - xoff;
+    const int originY = atPos.y - yoff;
+
+    for (int row = 0; row < decoded.bitmap.dim.height; row++) {
+        const int destY = originY + row;
+        if (destY < 0 || destY >= canvas.dim.height) {
+            continue;
+        }
+
+        const int shift = slantShift(yoff - row);
+
+        const MemoryPtr srcRow = decoded.bitmap.pixels + row * decoded.bitmap.pitch;
+        const MemoryPtr destRow = canvas.pixels + destY * canvas.pitch;
+
+        for (int col = 0; col < decoded.bitmap.dim.width; col++) {
+            const int destX = originX + col + shift;
+            if (destX < 0 || destX >= canvas.dim.width) {
+                continue;
+            }
+
+            if (oneBit) {
+                const uint8_t srcBit = (srcRow[col >> 3] >> (7 - (col & 7))) & 1;
+                if (srcBit != BLACK_ONE_BIT) {
+                    continue;
+                }
+                const uint8_t mask = 0x80 >> (destX & 7);
+                if ((inverted ? WHITE_ONE_BIT : BLACK_ONE_BIT) != 0) {
+                    destRow[destX >> 3] |= mask;
+                } else {
+                    destRow[destX >> 3] &= ~mask;
+                }
+            } else {
+                if (srcRow[col] != BLACK_EIGHT_BITS) {
+                    continue;
+                }
+                destRow[destX] = inverted ? WHITE_EIGHT_BITS : BLACK_EIGHT_BITS;
+            }
+        }
+    }
+
+    delete[] decoded.bitmap.pixels;
+    return true;
+}
+
 // Returns the x position at the end of string
 auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
                                 const std::string &line, bool inverted) const -> int {
@@ -86,16 +157,20 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
                            : canvas.dim.width;
 
         glyph.bitmap = canvas;
+        int italicCorrection = 0;
 
-        ligKernUTF8Map(line, [this, &glyph, &atPos, inverted](GlyphCode glyphCode, FIX16 kern,
-                                                              bool first, bool last) {
+        ligKernUTF8Map(line, [this, &glyph, &atPos, &italicCorrection,
+                              inverted](GlyphCode glyphCode, FIX16 kern, bool first, bool last) {
             int8_t hOffset = first ? fontData_->getFace(faceIndex_)->getGlyphHOffset(glyphCode) : 0;
             atPos.x += hOffset;
 
             // LOGD(FONT_TAG, "Word Markers: %d %d", first, last);
 
-            if (fontData_->getFace(faceIndex_)
-                    ->getGlyph(glyphCode, glyph, true, false, atPos, inverted)) {
+            bool drawn = isItalic_
+                             ? drawSlantedGlyph(glyph.bitmap, glyphCode, atPos, inverted, glyph)
+                             : fontData_->getFace(faceIndex_)
+                                   ->getGlyph(glyphCode, glyph, true, false, atPos, inverted);
+            if (drawn) {
                 // As advance is positive and greather than kern, we can shift right
                 // to get rid of the fix point decimals
                 if (glyphCode == SPACE_CODE) {
@@ -104,9 +179,14 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
                     atPos.x += last ? fontData_->getFace(faceIndex_)->getGlyphWidth(glyphCode) -
                                           (kern / 64) - glyph.metrics.xoff
                                     : ((glyph.metrics.advance + kern) >> 6);
+                    italicCorrection = isItalic_ ? slantShift(glyph.metrics.yoff) : 0;
                 }
             }
         });
+
+        // Keep the leaning top of the last italic glyph from crowding upright text that follows
+        // (e.g. punctuation right after an italic word, or the next word after a trailing space).
+        atPos.x += italicCorrection;
     }
 
     return atPos.x;
