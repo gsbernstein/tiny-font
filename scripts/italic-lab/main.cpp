@@ -293,6 +293,11 @@ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
     if(y===baseline)button.classList.add('base');
     button.addEventListener('click',()=>{
         const c=choice.value,ink=new Set(glyph(c).map(key)),k=key([x,y]);
+        if(ink.has(k)&&ink.size===1){
+            document.getElementById('status').textContent=
+                'A custom glyph must retain at least one ink pixel; the generator rejects blank overrides.';
+            return;
+        }
         if(ink.has(k))ink.delete(k);else ink.add(k);
         custom[c]=[...ink].map(k=>k.split(',').map(Number));refresh();
     });
@@ -336,7 +341,7 @@ function restoreSaved(){
     }
     const replacement={};
     for(const [c,pixels] of Object.entries(saved.glyphs)){
-        if(c.length!==1||!editable.includes(c)||!Array.isArray(pixels)){
+        if(c.length!==1||!editable.includes(c)||!Array.isArray(pixels)||!pixels.length){
             throw Error('Invalid saved glyph: '+c);
         }
         const occupied=new Set();
@@ -358,6 +363,14 @@ document.getElementById('all-reset').onclick=()=>{
     for(const c of Object.keys(custom))delete custom[c];refresh();
 };
 document.getElementById('export').onclick=()=>{
+    for(const [c,pixels] of Object.entries(custom)){
+        if(!pixels.length){
+            document.getElementById('status').textContent=
+                'Cannot export blank glyph '+String.fromCharCode(Number(c))+'. Reset it or add an ink pixel.';
+            document.getElementById('export-panel').hidden=true;
+            return;
+        }
+    }
     const glyphs=Object.fromEntries(Object.entries(custom).map(([c,pixels])=>
         [String.fromCharCode(Number(c)),pixels]));
     const output=document.getElementById('export-data');

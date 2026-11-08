@@ -54,7 +54,8 @@ The samples do not cover every pair or ligature combination.
 Edit pixels, inspect native-size and enlarged context samples, then use
 **Export custom glyphs** to copy the JSON back into
 `src/IBMFFonts/SolSans_75_MediumItalic.json`. Browser edits are previews only and
-are lost on reload unless exported. Regenerate and format the header afterward,
+are lost on reload unless exported. Custom overrides must retain at least one ink
+pixel, matching the header generator. Regenerate and format the header afterward,
 review the italic golden images, and rerun the IBMF italic tests:
 
 ```sh
