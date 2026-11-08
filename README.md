@@ -14,6 +14,25 @@ TTF support (via [FreeType](https://freetype.org/)) is also included to support 
 * 1bpp font support with ligatures and kerning.
 * TTF vector font support for grayscale and higher density displays.
 
+## IBMF synthetic italics
+
+All three SolSans sizes use a baseline-anchored, one-pixel shift per three rows:
+`shift(h) = floor(h / 3)`, where `h` is the row height above the baseline.
+Rows 0-2 stay unshifted, rows 3-5 shift right one pixel, and rows -1 through -3
+shift left one pixel. The row placement is intentional rather than nearest-pixel
+angle rounding. Upright kerning and advances remain unchanged; the returned
+italic end position includes a correction using the same staircase.
+
+SolSans medium can additionally use 20 hand-edited italic glyphs by constructing
+`Font(data, 1, true)`. This option must only be enabled for `SolSans_75` face 1.
+Other faces and glyphs retain the synthetic staircase, and upright text is unaffected.
+Custom glyphs keep the original metrics, ligatures and kerning; end-of-run spacing
+also accounts for their rightmost ink.
+
+The editable source is `src/IBMFFonts/SolSans_75_MediumItalic.json`. Regenerate the
+compact row-mask header with `node scripts/generate-italic-overrides.mjs`, then
+format the generated header with clang-format.
+
 ## See also
 
 * [IBMF Font Editor app](https://github.com/turgu1/IBMFFontEditor)

@@ -2,6 +2,21 @@
 
 #include "IBMFFont.hpp"
 
+#include <algorithm>
+
+#include "IBMFFonts/SolSans_75_MediumItalic.hpp"
+
+auto Font::customItalicGlyph(GlyphCode glyphCode) const -> int {
+    if (useSolSansMediumItalic_) {
+        for (size_t i = 0; i < solsans_italic::GLYPHS.size(); ++i) {
+            if (fontData_->translate(solsans_italic::GLYPHS[i].character) == glyphCode) {
+                return static_cast<int>(i);
+            }
+        }
+    }
+    return -1;
+}
+
 auto Font::ligKernUTF8Map(const std::string &line, LigKernMappingHandler handler) const -> void {
     if (line.length() != 0) {
         auto iter = UTF8Iterator(line);
@@ -62,6 +77,35 @@ auto Font::drawSlantedGlyph(ibmf_defs::Bitmap &canvas, GlyphCode glyphCode, ibmf
         return false;
     }
     glyphOut.metrics = metricsOnly.metrics;
+
+    const int customIndex = customItalicGlyph(glyphCode);
+    if (customIndex >= 0) {
+        const auto &custom = solsans_italic::GLYPHS[customIndex];
+        for (int row = 0; row < 24; ++row) {
+            const int y = atPos.y + row - solsans_italic::BASELINE;
+            if (y < 0 || y >= canvas.dim.height) {
+                continue;
+            }
+            for (int col = 0; col < 24; ++col) {
+                const int x = atPos.x + col - solsans_italic::ORIGIN;
+                if (!(custom.rows[row] & (uint32_t{1} << col)) || x < 0 || x >= canvas.dim.width) {
+                    continue;
+                }
+                auto dest = canvas.pixels + y * canvas.pitch;
+                if (getDisplayPixelResolution() == PixelResolution::ONE_BIT) {
+                    const uint8_t mask = 0x80 >> (x & 7);
+                    if ((inverted ? WHITE_ONE_BIT : BLACK_ONE_BIT) != 0) {
+                        dest[x >> 3] |= mask;
+                    } else {
+                        dest[x >> 3] &= ~mask;
+                    }
+                } else {
+                    dest[x] = inverted ? WHITE_EIGHT_BITS : BLACK_EIGHT_BITS;
+                }
+            }
+        }
+        return true;
+    }
 
     // With caching enabled the face decodes into its own freshly allocated bitmap. Passing the
     // vertical offset as the position cancels the face's baseline adjustment so the glyph lands
@@ -180,6 +224,15 @@ auto Font::drawSingleLineOfText(ibmf_defs::Bitmap &canvas, ibmf_defs::Pos pos,
                                           (kern / 64) - glyph.metrics.xoff
                                     : ((glyph.metrics.advance + kern) >> 6);
                     italicCorrection = isItalic_ ? slantShift(glyph.metrics.yoff) : 0;
+                    const int customIndex = isItalic_ ? customItalicGlyph(glyphCode) : -1;
+                    if (customIndex >= 0) {
+                        const int uprightRight =
+                            fontData_->getFace(faceIndex_)->getGlyphWidth(glyphCode) -
+                            glyph.metrics.xoff;
+                        italicCorrection =
+                            std::max(italicCorrection,
+                                     solsans_italic::GLYPHS[customIndex].right + 1 - uprightRight);
+                    }
                 }
             }
         });

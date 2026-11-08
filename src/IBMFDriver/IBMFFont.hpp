@@ -14,6 +14,7 @@ private:
     FontData *fontData_;
     int faceIndex_;
     bool isItalic_{false};
+    bool useSolSansMediumItalic_{false};
     // IBMFFace *face_;
 
     // Maximum size of an allocated buffer to do vsnprintf formatting
@@ -32,20 +33,20 @@ private:
     ///
     auto ligKernUTF8Map(const std::string &line, LigKernMappingHandler handler) const -> void;
 
-    // Italic slant as a fraction of 64 (13/64 ~= 0.2, about 11.5 degrees)
-    static constexpr int ITALIC_SLANT_64THS = 13;
-
-    // Horizontal shift, rounded to the nearest pixel, for a row at the given height above baseline
+    // Three-row bands anchored at the baseline; floor division also shifts descenders left.
     static constexpr auto slantShift(int heightAboveBaseline) -> int {
-        const int scaled = heightAboveBaseline * ITALIC_SLANT_64THS + 32;
-        return scaled >= 0 ? scaled / 64 : -((-scaled + 63) / 64);
+        return heightAboveBaseline >= 0 ? heightAboveBaseline / 3
+                                        : -((-heightAboveBaseline + 2) / 3);
     }
 
     auto drawSlantedGlyph(ibmf_defs::Bitmap &canvas, GlyphCode glyphCode, ibmf_defs::Pos atPos,
                           bool inverted, ibmf_defs::Glyph &glyphOut) const -> bool;
+    auto customItalicGlyph(GlyphCode glyphCode) const -> int;
 
 public:
-    Font(FontData &ibmfFont, int index) noexcept : fontData_(&ibmfFont), faceIndex_(index) {}
+    Font(FontData &ibmfFont, int index, bool useSolSansMediumItalic = false) noexcept
+        : fontData_(&ibmfFont), faceIndex_(index),
+          useSolSansMediumItalic_(useSolSansMediumItalic && index == 1) {}
 
     ~Font() = default;
 
