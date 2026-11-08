@@ -14,6 +14,15 @@ TTF support (via [FreeType](https://freetype.org/)) is also included to support 
 * 1bpp font support with ligatures and kerning.
 * TTF vector font support for grayscale and higher density displays.
 
+## IBMF synthetic italics
+
+All three SolSans sizes use a baseline-anchored, one-pixel shift per three rows:
+`shift(h) = floor(h / 3)`, where `h` is the row height above the baseline.
+Rows 0-2 stay unshifted, rows 3-5 shift right one pixel, and rows -1 through -3
+shift left one pixel. The row placement is intentional rather than nearest-pixel
+angle rounding. Upright kerning and advances remain unchanged; the returned
+italic end position includes a correction using the same staircase.
+
 ## See also
 
 * [IBMF Font Editor app](https://github.com/turgu1/IBMFFontEditor)

@@ -32,13 +32,10 @@ private:
     ///
     auto ligKernUTF8Map(const std::string &line, LigKernMappingHandler handler) const -> void;
 
-    // Italic slant as a fraction of 64 (13/64 ~= 0.2, about 11.5 degrees)
-    static constexpr int ITALIC_SLANT_64THS = 13;
-
-    // Horizontal shift, rounded to the nearest pixel, for a row at the given height above baseline
+    // Three-row bands anchored at the baseline; floor division also shifts descenders left.
     static constexpr auto slantShift(int heightAboveBaseline) -> int {
-        const int scaled = heightAboveBaseline * ITALIC_SLANT_64THS + 32;
-        return scaled >= 0 ? scaled / 64 : -((-scaled + 63) / 64);
+        return heightAboveBaseline >= 0 ? heightAboveBaseline / 3
+                                        : -((-heightAboveBaseline + 2) / 3);
     }
 
     auto drawSlantedGlyph(ibmf_defs::Bitmap &canvas, GlyphCode glyphCode, ibmf_defs::Pos atPos,

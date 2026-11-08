@@ -3,6 +3,7 @@
 #include <IBMFFonts/SolSans_75.h>
 #include <algorithm>
 #include <catch_amalgamated.hpp>
+#include <cmath>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -336,11 +337,51 @@ auto drawLine(Font &font, TestCanvas &canvas, int x, int y, const std::string &t
 }
 
 // getTextSize() measures upright glyphs; leave room for the slant on the right.
-auto italicSlantMargin(const Font &font) -> int { return font.lineHeight() / 4 + 2; }
+auto italicSlantMargin(const Font &font) -> int { return font.lineHeight() / 3 + 2; }
 
 const std::string ITALIC_SAMPLE = "fjord bdhklt gjpqy Tiny";
 
 } // namespace
+
+TEST_CASE("IBMF italic uses exact baseline-anchored three-row bands for all faces",
+          "[ibmf][italic]") {
+    FontData fontData(SOLSANS_75_IBMF, SOLSANS_75_IBMF_LEN);
+    for (int face = 0; face < fontData.getFaceCount(); ++face) {
+        Font font(fontData, face);
+        const int inset = 16;
+        const int W = font.getTextSize(ITALIC_SAMPLE).width + inset * 2 + italicSlantMargin(font);
+        const int H = font.lineHeight() + inset * 2;
+        const int up = (font.lineHeight() - font.getTextSize("T").height - 1) / 2;
+        const int baseline = inset + font.lineHeight() - up;
+        TestCanvas upright(W, H, WHITE_FILL);
+        const int uprightEnd = drawLine(font, upright, inset, inset, ITALIC_SAMPLE, false);
+        TestCanvas italic(W, H, WHITE_FILL);
+        const int italicEnd = drawLine(font, italic, inset, inset, ITALIC_SAMPLE, true);
+
+        int above = 0;
+        int below = 0;
+        for (int y = 0; y < H; ++y) {
+            const int shift = static_cast<int>(std::floor((baseline - y) / 3.0));
+            for (int x = 0; x < W; ++x) {
+                INFO("face " << face << " pixel " << x << "," << y);
+                const int sourceX = x - shift;
+                const bool expected = sourceX >= 0 && sourceX < W && upright.isBlack(sourceX, y);
+                REQUIRE(italic.isBlack(x, y) == expected);
+                if (expected) {
+                    above += y < baseline;
+                    below += y > baseline;
+                }
+            }
+        }
+        CHECK(above > 0);
+        CHECK(below > 0);
+        CHECK(italic.blackPixelCount() == upright.blackPixelCount());
+        CHECK(italic.guardsIntact());
+        Glyph last{};
+        REQUIRE(fontData.getFace(face)->getGlyph(fontData.translate(U'y'), last, false));
+        CHECK(italicEnd == uprightEnd + static_cast<int>(std::floor(last.metrics.yoff / 3.0)));
+    }
+}
 
 TEST_CASE("IBMF italic line with ascenders and descenders matches golden", "[ibmf][italic]") {
     FontData fontData(SOLSANS_75_IBMF, SOLSANS_75_IBMF_LEN);
