@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include <Font.hpp>
 #include <IBMFFonts/SolSans_75.h>
+#include <IBMFFonts/SolSans_75_MediumItalic.hpp>
 #include <algorithm>
 #include <catch_amalgamated.hpp>
 #include <cmath>
@@ -383,11 +384,88 @@ TEST_CASE("IBMF italic uses exact baseline-anchored three-row bands for all face
     }
 }
 
+TEST_CASE("SolSans medium custom italics preserve pixels, inversion and clipping",
+          "[ibmf][italic]") {
+    FontData fontData(SOLSANS_75_IBMF, SOLSANS_75_IBMF_LEN);
+    Font font(fontData, 1, true);
+    for (const auto &custom : solsans_italic::GLYPHS) {
+        const auto text = codePointToUtf8(static_cast<int>(custom.character));
+        Glyph metrics{};
+        const auto code = fontData.translate(custom.character);
+        REQUIRE(fontData.getFace(1)->getGlyph(code, metrics, false));
+        for (const auto &pos : {Pos(12, 8), Pos(-5, 8), Pos(28, 8), Pos(12, -12), Pos(12, 27)}) {
+            INFO("character " << static_cast<int>(custom.character) << " at " << pos.x << ","
+                              << pos.y);
+            TestCanvas normal(40, 40, WHITE_FILL);
+            const int end = drawLine(font, normal, pos.x, pos.y, text, true);
+            TestCanvas inverse(40, 40, BLACK_FILL);
+            CHECK(drawLine(font, inverse, pos.x, pos.y, text, true, true) == end);
+            const int up = (font.lineHeight() - font.getTextSize("T").height - 1) / 2;
+            const int baseline = pos.y + font.lineHeight() - up;
+            const int origin = pos.x + fontData.getFace(1)->getGlyphHOffset(code);
+            for (int y = 0; y < 40; ++y) {
+                for (int x = 0; x < 40; ++x) {
+                    const int col = x - origin + solsans_italic::ORIGIN;
+                    const int row = y - baseline + solsans_italic::BASELINE;
+                    const bool expected = row >= 0 && row < 24 && col >= 0 && col < 24 &&
+                                          (custom.rows[row] & (uint32_t{1} << col)) != 0;
+                    REQUIRE(normal.isBlack(x, y) == expected);
+                    REQUIRE(inverse.isBlack(x, y) != expected);
+                }
+            }
+            CHECK(normal.guardsIntact());
+            CHECK(inverse.guardsIntact());
+            CHECK(end >= origin + custom.right + 1);
+        }
+    }
+}
+
+TEST_CASE("SolSans custom italics leave upright, fallback glyphs and other sizes unchanged",
+          "[ibmf][italic]") {
+    FontData fontData(SOLSANS_75_IBMF, SOLSANS_75_IBMF_LEN);
+    for (int face = 0; face < 3; ++face) {
+        Font original(fontData, face);
+        Font custom(fontData, face, true);
+        for (const bool italic : {false, true}) {
+            const std::string text = face == 1 && italic
+                                         ? "office affine fluff bdhklt fjord gjpqy Tiny"
+                                         : "AVWRYv 0123456789%(),:";
+            TestCanvas expected(600, 48, WHITE_FILL);
+            TestCanvas actual(600, 48, WHITE_FILL);
+            CHECK(drawLine(original, expected, 12, 8, text, italic) ==
+                  drawLine(custom, actual, 12, 8, text, italic));
+            CHECK(actual.to8bpp() == expected.to8bpp());
+        }
+    }
+}
+
+TEST_CASE("SolSans medium custom italic alphabet matches golden", "[ibmf][italic]") {
+    FontData fontData(SOLSANS_75_IBMF, SOLSANS_75_IBMF_LEN);
+    Font font(fontData, 1, true);
+    const std::string text = "AVWRYv 0123456789%(),: AV VA RY YR";
+    const int W = font.getTextSize(text).width + 32;
+    const int H = font.lineHeight() + 20;
+    TestCanvas canvas(W, H, WHITE_FILL);
+    drawLine(font, canvas, 10, 10, text, true);
+    const auto pixels = canvas.to8bpp();
+    const std::string path = std::string(GOLDEN_DIR) + "/solsans_medium_custom_italic.png";
+    int width = 0, height = 0;
+    std::vector<uint8_t> golden;
+    if (!Load8bpp(path.c_str(), width, height, golden)) {
+        REQUIRE(Save8bpp(path.c_str(), W, H, pixels.data()));
+        SUCCEED("Created custom italic baseline; review and rerun");
+    } else {
+        REQUIRE(width == W);
+        REQUIRE(height == H);
+        ASSERT_IMAGE(path.c_str(), W, H, pixels.data(), golden.data());
+    }
+}
+
 TEST_CASE("IBMF italic line with ascenders and descenders matches golden", "[ibmf][italic]") {
     FontData fontData(SOLSANS_75_IBMF, SOLSANS_75_IBMF_LEN);
     for (int face = 0; face < fontData.getFaceCount(); ++face) {
         INFO("IBMF face index " << face);
-        Font font(fontData, face);
+        Font font(fontData, face, true);
         const int inset = 10;
         const int W = font.getTextSize(ITALIC_SAMPLE).width + inset * 2 + italicSlantMargin(font);
         const int H = font.lineHeight() + inset * 2;
@@ -500,11 +578,12 @@ TEST_CASE("IBMF italic glyphs clip at every canvas edge", "[ibmf][italic]") {
 TEST_CASE("IBMF upright text drawn at the italic end position does not collide", "[ibmf][italic]") {
     FontData fontData(SOLSANS_75_IBMF, SOLSANS_75_IBMF_LEN);
     for (int face = 0; face < fontData.getFaceCount(); ++face) {
-        Font font(fontData, face);
+        Font font(fontData, face, true);
         // Italic runs ending in tall glyphs (with and without a trailing space) followed by
         // upright text that starts at the baseline or with an ascender.
         const std::pair<std::string, std::string> cases[] = {
-            {"word", "."}, {"bold", "l"}, {"half", "!"}, {"lit", ","}, {"bold ", "l"},
+            {"word", "."}, {"bold", "l"}, {"half", "!"}, {"lit", ","}, {"bold ", "l"}, {"V", "."},
+            {"W", "l"},    {"R", ":"},    {"v", ")"},    {"99%", "l"}, {"A ", "Y"},
         };
         for (const auto &[italicText, uprightText] : cases) {
             INFO("face " << face << " italic '" << italicText << "' then '" << uprightText << "'");

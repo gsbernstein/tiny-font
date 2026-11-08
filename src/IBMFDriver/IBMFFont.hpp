@@ -14,6 +14,7 @@ private:
     FontData *fontData_;
     int faceIndex_;
     bool isItalic_{false};
+    bool useSolSansMediumItalic_{false};
     // IBMFFace *face_;
 
     // Maximum size of an allocated buffer to do vsnprintf formatting
@@ -40,9 +41,12 @@ private:
 
     auto drawSlantedGlyph(ibmf_defs::Bitmap &canvas, GlyphCode glyphCode, ibmf_defs::Pos atPos,
                           bool inverted, ibmf_defs::Glyph &glyphOut) const -> bool;
+    auto customItalicGlyph(GlyphCode glyphCode) const -> int;
 
 public:
-    Font(FontData &ibmfFont, int index) noexcept : fontData_(&ibmfFont), faceIndex_(index) {}
+    Font(FontData &ibmfFont, int index, bool useSolSansMediumItalic = false) noexcept
+        : fontData_(&ibmfFont), faceIndex_(index),
+          useSolSansMediumItalic_(useSolSansMediumItalic && index == 1) {}
 
     ~Font() = default;
 
